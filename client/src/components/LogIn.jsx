@@ -1,31 +1,29 @@
 import React from 'react'
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom'
 import { FcGoogle } from 'react-icons/fc'
 import shareVideo from '../assets/share.mp4';
 import logo from '../assets/logoWhite.png';
+import jwt_decode from "jwt-decode";
 
 import { client } from '../client';
 
+
 const LogIn = () => {
 
-  // ERROR DOES NOT WORK YET, SKIP TO LATER:
-  // [GSI_LOGGER]: The given client ID is not found.
-  //  AND
-  //  BLANK PAGE FOR LOGIN SCREEN
 
-  
 
   const navigate = useNavigate();
 
-  const responseGoogle = (response) => {
-    localStorage.setItem('user', JSON.stringify(response.profileObj));
-    const { name, googleId, imageUrl } = response.profileObj;
+  const responseGoogle = async (response) => {
+    const decoded = jwt_decode(response.credential);
+    console.log(decoded);
+    const { name, sub, picture } = decoded;
     const doc = {
-      _id: googleId,
+      _id: sub,
       _type: 'user',
       userName: name,
-      image: imageUrl,
+      image: picture,
     };
 
     client.createIfNotExists(doc).then(() => {
@@ -38,7 +36,7 @@ const LogIn = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={`${process.env.NEXT_PUBLIC_GOOGLE_API_TOKEN}`}>
+    <GoogleOAuthProvider clientId='240941726218-41e781fhbm422r5v8t6gt9gjokinjc28.apps.googleusercontent.com'>
       <div className="flex justify-start items-center flex-col h-screen">
         <div className=" relative w-full h-full">
           <video
@@ -58,21 +56,10 @@ const LogIn = () => {
 
             <div className="shadow-2xl -mt-5">
               <GoogleLogin
-                clientId={`${process.env.NEXT_PUBLIC_GOOGLE_API_TOKEN}`}
-                render={(renderProps) => (
-                  <button
-                    type="button"
-                    className="bg-mainColor flex justify-center items-center p-3 rounded-lg cursor-pointer outline-none"
-                    onClick={renderProps.onClick}
-                    disabled={renderProps.disabled}
-                  >
-                    <FcGoogle className="mr-4" /> Sign in with google
-                  </button>
-                )}
+
                 onSuccess={responseGoogle}
                 onError={onFailure}
-                cookiePolicy="single_host_origin"
-                responseType="id_token"   
+
               />
             </div>
           </div>
